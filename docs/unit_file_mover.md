@@ -28,12 +28,15 @@
 
 ### インターフェース
 ```
-FileMover
-├── Move(sourcePaths: List<string>, destinationFolder: string): MoveResult
+FileMoverService
+├── move(sources: List<SourcePath>, destination: DestinationFolder): MoveResult
 ├── MoveResult
-│   ├── Success: bool
-│   ├── ErrorType: ErrorType (None, FolderNotFound, AccessDenied, Conflict)
-│   └── ErrorMessage: string
+│   ├── success: bool
+│   ├── movedItems: List<MovedItem>
+│   └── errors: List<MoveError>
+└── MoveError
+    ├── errorType: ErrorType (None, FolderNotFound, AccessDenied, Conflict, SourceNotFound, Unknown)
+    └── message: string
 ```
 
 ### 処理フロー

@@ -23,15 +23,13 @@
 ### インターフェース
 ```
 ConflictResolver
-├── Resolve(sourceFile: string, destinationFolder: string): ConflictResult
+├── resolve(conflict: FileConflict): ConflictResult
 ├── ConflictResult
-│   ├── Action: ConflictAction (Overwrite, Skip, Rename, Cancel)
-│   └── NewFileName: string (リネーム時のみ使用)
-├── ConflictAction
-│   ├── Overwrite  - 上書き
-│   ├── Skip       - スキップ
-│   ├── Rename     - リネーム
-│   └── Cancel     - キャンセル
+│   ├── action: ConflictAction (Overwrite, Skip, Rename, Cancel)
+│   └── newFileName: FileName (リネーム時のみ使用)
+└── FileConflict
+    ├── sourceFileName: FileName
+    └── destinationFolder: string
 ```
 
 ### 処理フロー

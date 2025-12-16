@@ -126,3 +126,111 @@ ConflictResolver
 - 競合解決ダイアログモジュール
 - リネームダイアログモジュール
 - 単体テストコード
+
+---
+
+## ドメインモデル
+
+### クラス図
+
+```mermaid
+classDiagram
+    class ConflictResolver {
+        <<Application Service>>
+        -dialogPresenter: ConflictDialogPresenter
+        -fileNameGenerator: FileNameGenerator
+        +resolve(conflict: FileConflict) ConflictResult
+    }
+
+    class FileConflict {
+        <<Value Object>>
+        -sourceFileName: FileName
+        -destinationFolder: string
+        +getSourceFileName() FileName
+        +getDestinationFolder() string
+        +getConflictingFilePath() string
+    }
+
+    class FileName {
+        <<Value Object>>
+        -baseName: string
+        -extension: string
+        +getFullName() string
+        +getBaseName() string
+        +getExtension() string
+        +hasExtension() bool
+    }
+
+    class ConflictResult {
+        <<Value Object>>
+        -action: ConflictAction
+        -newFileName: FileName
+        +getAction() ConflictAction
+        +getNewFileName() FileName
+        +isOverwrite() bool
+        +isSkip() bool
+        +isRename() bool
+        +isCancel() bool
+    }
+
+    class ConflictAction {
+        <<Enumeration>>
+        Overwrite
+        Skip
+        Rename
+        Cancel
+    }
+
+    class FileNameGenerator {
+        <<Domain Service>>
+        +generateCopyName(original: FileName) FileName
+        +isValidFileName(name: string) bool
+        +sanitize(name: string) string
+    }
+
+    class ConflictDialogPresenter {
+        <<Port/Interface>>
+        +showConflictDialog(conflict: FileConflict) ConflictAction
+        +showRenameDialog(defaultName: FileName) FileName
+    }
+
+    ConflictResolver --> FileConflict : resolves
+    ConflictResolver --> ConflictResult : returns
+    ConflictResolver --> FileNameGenerator : uses
+    ConflictResolver --> ConflictDialogPresenter : uses
+    FileConflict *-- FileName
+    ConflictResult --> ConflictAction
+    ConflictResult --> FileName
+```
+
+### ステートマシン図
+
+```mermaid
+stateDiagram-v2
+    [*] --> ShowingConflictDialog: resolve()呼び出し
+
+    ShowingConflictDialog --> Completed_Overwrite: 上書き選択
+    ShowingConflictDialog --> Completed_Skip: スキップ選択
+    ShowingConflictDialog --> ShowingRenameDialog: リネーム選択
+    ShowingConflictDialog --> Completed_Cancel: キャンセル選択
+
+    ShowingRenameDialog --> ValidatingFileName: ファイル名入力
+
+    ValidatingFileName --> Completed_Rename: 有効なファイル名
+    ValidatingFileName --> ShowingRenameDialog: 無効なファイル名（エラー表示）
+    ValidatingFileName --> ShowingConflictDialog: リネームキャンセル
+
+    Completed_Overwrite --> [*]: ConflictResult(Overwrite)
+    Completed_Skip --> [*]: ConflictResult(Skip)
+    Completed_Rename --> [*]: ConflictResult(Rename, newFileName)
+    Completed_Cancel --> [*]: ConflictResult(Cancel)
+```
+
+### ドメインルール
+
+| ルール | 説明 |
+|--------|------|
+| デフォルト名生成 | `{baseName}_copy.{extension}` 形式 |
+| 拡張子なしの場合 | `{baseName}_copy` 形式 |
+| ファイル名検証 | 空文字、不正文字、既存名は不可 |
+| リネームキャンセル | 競合ダイアログに戻る（処理中止ではない） |

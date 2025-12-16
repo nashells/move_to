@@ -109,3 +109,137 @@ FileMover
 - ファイル移動モジュール
 - エラーダイアログ表示モジュール
 - 単体テストコード
+
+---
+
+## ドメインモデル
+
+### クラス図
+
+```mermaid
+classDiagram
+    class FileMoverService {
+        <<Application Service>>
+        -conflictResolver: ConflictResolver
+        -fileSystem: FileSystemPort
+        -errorPresenter: ErrorPresenter
+        +move(sources: List~SourcePath~, destination: DestinationFolder) MoveResult
+    }
+
+    class SourcePath {
+        <<Value Object>>
+        -path: string
+        +getPath() string
+        +getFileName() string
+        +isFile() bool
+        +isFolder() bool
+    }
+
+    class DestinationFolder {
+        <<Value Object>>
+        -path: string
+        +getPath() string
+        +exists() bool
+        +hasWritePermission() bool
+        +combinePath(fileName: string) string
+    }
+
+    class MoveResult {
+        <<Value Object>>
+        -success: bool
+        -movedItems: List~MovedItem~
+        -errors: List~MoveError~
+        +isSuccess() bool
+        +getMovedItems() List~MovedItem~
+        +getErrors() List~MoveError~
+    }
+
+    class MovedItem {
+        <<Value Object>>
+        -sourcePath: string
+        -destinationPath: string
+        +getSourcePath() string
+        +getDestinationPath() string
+    }
+
+    class MoveError {
+        <<Value Object>>
+        -errorType: ErrorType
+        -message: string
+        -path: string
+        +getErrorType() ErrorType
+        +getMessage() string
+    }
+
+    class ErrorType {
+        <<Enumeration>>
+        None
+        FolderNotFound
+        AccessDenied
+        Conflict
+        SourceNotFound
+        Unknown
+    }
+
+    class FileSystemPort {
+        <<Port/Interface>>
+        +exists(path: string) bool
+        +hasPermission(path: string) bool
+        +move(source: string, destination: string) void
+        +fileExistsInDestination(fileName: string, folder: string) bool
+    }
+
+    class ErrorPresenter {
+        <<Port/Interface>>
+        +showFolderNotFoundError(path: string) void
+        +showAccessDeniedError(path: string) void
+    }
+
+    FileMoverService --> SourcePath : uses
+    FileMoverService --> DestinationFolder : uses
+    FileMoverService --> MoveResult : returns
+    FileMoverService --> FileSystemPort : uses
+    FileMoverService --> ErrorPresenter : uses
+    MoveResult *-- MovedItem
+    MoveResult *-- MoveError
+    MoveError --> ErrorType
+```
+
+### ステートマシン図
+
+```mermaid
+stateDiagram-v2
+    [*] --> CheckingDestination: move()呼び出し
+
+    CheckingDestination --> CheckingPermission: フォルダー存在
+    CheckingDestination --> Error_FolderNotFound: フォルダー不在
+
+    CheckingPermission --> ProcessingItems: 権限あり
+    CheckingPermission --> Error_AccessDenied: 権限なし
+
+    ProcessingItems --> CheckingConflict: 次のアイテム
+    ProcessingItems --> Completed: 全アイテム処理完了
+
+    CheckingConflict --> MovingItem: 競合なし
+    CheckingConflict --> ResolvingConflict: 競合あり
+
+    ResolvingConflict --> MovingItem: 上書き/リネーム
+    ResolvingConflict --> ProcessingItems: スキップ
+    ResolvingConflict --> Cancelled: キャンセル
+
+    MovingItem --> ProcessingItems: 移動完了
+
+    Error_FolderNotFound --> [*]: エラーダイアログ表示
+    Error_AccessDenied --> [*]: エラーダイアログ表示
+    Cancelled --> [*]: 処理中止
+    Completed --> [*]: 正常終了
+```
+
+### ドメインルール
+
+| ルール | 説明 |
+|--------|------|
+| 事前チェック優先 | 移動先の存在・権限は最初にチェック |
+| 個別処理 | 各ファイル/フォルダーは個別に処理される |
+| 競合時は委譲 | 同名ファイル存在時はConflictResolverに委譲 |
+| フォルダー移動 | サブフォルダー・ファイルを含めて再帰的に移動 |

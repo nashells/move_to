@@ -82,3 +82,99 @@ Windows 11エクスプローラーの右クリックメニューに「move to」
 ## 成果物
 - シェル拡張モジュール
 - 統合テストコード
+
+---
+
+## ドメインモデル
+
+### クラス図
+
+```mermaid
+classDiagram
+    class ContextMenuHandler {
+        <<Application Service>>
+        -configurationRepository: ConfigurationRepository
+        -fileMoverService: FileMoverService
+        +onContextMenuInvoked(context: SelectionContext) void
+        +onDestinationSelected(destination: Destination) void
+    }
+
+    class SelectionContext {
+        <<Value Object>>
+        -selectedItems: List~FileSystemItem~
+        +getSelectedItems() List~FileSystemItem~
+        +getItemCount() int
+        +isEmpty() bool
+    }
+
+    class FileSystemItem {
+        <<Value Object>>
+        -path: string
+        -itemType: ItemType
+        +getPath() string
+        +isFile() bool
+        +isFolder() bool
+    }
+
+    class ItemType {
+        <<Enumeration>>
+        File
+        Folder
+    }
+
+    class MenuBuilder {
+        <<Domain Service>>
+        +buildCascadeMenu(destinations: List~Destination~) Menu
+    }
+
+    class Menu {
+        <<Value Object>>
+        -items: List~MenuItem~
+        +getItems() List~MenuItem~
+    }
+
+    class MenuItem {
+        <<Value Object>>
+        -displayName: string
+        -destination: Destination
+        +getDisplayName() string
+        +getDestination() Destination
+    }
+
+    ContextMenuHandler --> SelectionContext : uses
+    ContextMenuHandler --> MenuBuilder : uses
+    SelectionContext "1" *-- "1..*" FileSystemItem : contains
+    FileSystemItem --> ItemType
+    MenuBuilder ..> Menu : creates
+    Menu "1" *-- "0..10" MenuItem : contains
+```
+
+### シーケンス図
+
+```mermaid
+sequenceDiagram
+    participant User as ユーザー
+    participant Explorer as エクスプローラー
+    participant Handler as ContextMenuHandler
+    participant Config as ConfigurationRepository
+    participant Builder as MenuBuilder
+    participant Mover as FileMoverService
+
+    User->>Explorer: 右クリック
+    Explorer->>Handler: onContextMenuInvoked(context)
+    Handler->>Config: load()
+    Config-->>Handler: Configuration
+    Handler->>Builder: buildCascadeMenu(destinations)
+    Builder-->>Handler: Menu
+    Handler-->>Explorer: メニュー表示
+    User->>Explorer: 移動先を選択
+    Explorer->>Handler: onDestinationSelected(destination)
+    Handler->>Mover: move(selectedItems, destination)
+```
+
+### ドメインルール
+
+| ルール | 説明 |
+|--------|------|
+| 選択必須 | 最低1つのファイル/フォルダーが選択されている必要がある |
+| メニュー表示 | 移動先が0件でもメニューは表示する（空のカスケード） |

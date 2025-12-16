@@ -71,3 +71,68 @@ Configuration
 ## 成果物
 - 設定読み込みモジュール
 - 単体テストコード
+
+---
+
+## ドメインモデル
+
+### クラス図
+
+```mermaid
+classDiagram
+    class Configuration {
+        <<Aggregate Root>>
+        -destinations: List~Destination~
+        +getDestinations() List~Destination~
+        +getDestinationCount() int
+    }
+
+    class Destination {
+        <<Value Object>>
+        -displayName: DisplayName
+        -path: FolderPath
+        +getDisplayName() string
+        +getPath() string
+    }
+
+    class DisplayName {
+        <<Value Object>>
+        -value: string
+        +getValue() string
+        +validate() bool
+    }
+
+    class FolderPath {
+        <<Value Object>>
+        -value: string
+        +getValue() string
+        +validate() bool
+    }
+
+    class ConfigurationRepository {
+        <<Repository>>
+        +load() Configuration
+    }
+
+    class ConfigurationFactory {
+        <<Factory>>
+        +create(jsonData: string) Configuration
+        -parseDestinations(data: object) List~Destination~
+        -validateAndTrim(destinations: List) List~Destination~
+    }
+
+    Configuration "1" *-- "0..10" Destination : contains
+    Destination *-- DisplayName
+    Destination *-- FolderPath
+    ConfigurationRepository ..> Configuration : loads
+    ConfigurationFactory ..> Configuration : creates
+```
+
+### ドメインルール
+
+| ルール | 説明 |
+|--------|------|
+| 最大件数制限 | Destinationは最大10件まで |
+| DisplayName必須 | 空文字は不可 |
+| FolderPath必須 | 空文字は不可 |
+| 不変性 | Configuration, Destinationは不変オブジェクト |

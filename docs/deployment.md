@@ -33,6 +33,10 @@
    & "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\regasm.exe" /unregister $dll
    ```
 
+## スクリプト（管理者 PowerShell）
+- インストール: `scripts/install.ps1` （コピー → regasm 登録 → config 初期化、`-RestartExplorer` で再起動）
+- アンインストール: `scripts/uninstall.ps1` （regasm 解除、`-RemoveFiles` で配置削除、`-RestartExplorer` で再起動）
+
 ## インストーラ/スクリプトの要件
 - 管理者権限で実行
 - 登録・解除の両方を提供

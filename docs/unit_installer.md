@@ -24,6 +24,17 @@ MoveTo シェル拡張を配布・登録・解除するためのインストー�
   - Explorer 再起動の案内（オプションで自動実行）
 - ドキュメント: 手動実行手順の記載（deployment.md に統合）
 
+## 実装（リポジトリ配置）
+- `scripts/install.ps1`
+  - 既定: `src\MoveTo.Shell\bin\Release\net8.0-windows` から DLL をコピーし、`C:\Program Files\nashells\MoveTo\` に配置
+  - regasm `/codebase` で登録
+  - `%LOCALAPPDATA%\MoveTo\config.json` を未作成時にテンプレ生成
+  - `-RestartExplorer` で Explorer 再起動を自動実行
+- `scripts/uninstall.ps1`
+  - regasm `/unregister`
+  - `-RemoveFiles` で配置フォルダー削除（任意）
+  - `-RestartExplorer` で Explorer 再起動
+
 ## ユースケース
 1. 管理者がスクリプトを実行し、MoveTo シェル拡張を登録する。
 2. バージョンアップ時: 解除→ファイル差し替え→再登録。
@@ -50,6 +61,23 @@ MoveTo シェル拡張を配布・登録・解除するためのインストー�
   ```powershell
   $dll = "C:\\Program Files\\nashells\\MoveTo\\MoveTo.Shell.dll"
   & "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\regasm.exe" /unregister $dll
+  ```
+
+## スクリプト利用例（管理者 PowerShell）
+- インストール（コピー + 登録 + config 初期化 + Explorer 再起動）
+  ```powershell
+  Set-Location <repo_root>
+  powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -RestartExplorer
+  ```
+- アンインストール（解除のみ）
+  ```powershell
+  Set-Location <repo_root>
+  powershell -ExecutionPolicy Bypass -File .\scripts\uninstall.ps1 -RestartExplorer
+  ```
+- アンインストール（解除 + 配置削除）
+  ```powershell
+  Set-Location <repo_root>
+  powershell -ExecutionPolicy Bypass -File .\scripts\uninstall.ps1 -RemoveFiles -RestartExplorer
   ```
 
 ## エラー/リカバリ

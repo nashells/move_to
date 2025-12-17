@@ -7,19 +7,21 @@ Windows 11シェル拡張「move to」の開発環境構築手順を説明しま
 
 ## 1. 必要なソフトウェア
 
-### 1.1 Visual Studio 2022 Community
+### 1.1 Visual Studio Community 2026
 
 **ダウンロード**
 - URL: https://visualstudio.microsoft.com/ja/vs/community/
 
-**インストール時のワークロード選択**
-- [x] .NETデスクトップ開発
-- [x] .NET SDK（.NET 8.0）
+**インストール時のワークロード選択（2026 以降）**
+- [x] 「.NET デスクトップ開発」ワークロード
+  - インストーラーの「ワークロード」タブから選択します
 
-**個別コンポーネント（推奨）**
-- [x] NuGetパッケージマネージャー
-- [x] .NET プロファイリングツール
-- [x] C# および Visual Basic Roslyn コンパイラ
+上記ワークロードには、NuGet パッケージマネージャーや .NET プロファイリングツール、C# / Visual Basic コンパイラなど、本プロジェクトに必要な基本コンポーネントが含まれます。特別な理由がなければ、個別コンポーネントを手動で追加指定する必要はありません。
+
+**CLI 用 .NET SDK のインストール（推奨）**
+- URL: https://dotnet.microsoft.com/ja-jp/download/dotnet
+- 「.NET SDK 8.0 (LTS)」以上をインストールしてください（本プロジェクトは net8.0-windows を使用）
+- インストール後、PowerShell で `dotnet --version` を実行し、SDK が認識されていることを確認します
 
 ### 1.2 Git
 

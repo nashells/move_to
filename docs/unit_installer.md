@@ -87,3 +87,4 @@ MoveTo シェル拡張を配布・登録・解除するためのインストー�
 ## 完了条件
 - install/uninstall スクリプトがリポジトリに含まれ、手順が deployment.md に反映されている。
 - スクリプト実行のみで登録と解除が可能であることを確認済み（E2E の一部）。
+- Release ビルド→install.ps1→Explorer 再起動→右クリック確認までの手順が [docs/release_install.md](release_install.md) にまとまっている。

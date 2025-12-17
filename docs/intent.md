@@ -12,10 +12,11 @@ Windows11のexplorer上でファイルを右クリックし、メニューから
 	- アドミン権限での登録/解除手段を用意すること（インストーラ／スクリプト）。
 - 配布: インストーラまたは登録スクリプトで、
 	- regasm による登録・アンレジスト
-	- 必要な依存ファイル（DLL）の配置（`C:\\Program Files\\nashells\\MoveTo\\`）
+	- 必要な依存ファイル（DLL）の配置（`C:\Program Files\nashells\MoveTo\`）
 	- Explorer 再起動手順の案内
 	を提供する。
 - アンインストール: 登録解除（regasm /unregister 相当）を必ず含める。
+ - 設定ファイル: `%LOCALAPPDATA%\MoveTo\config.json` を未作成の場合に初期化する手段を提供する。
 
 ## 要件詳細
 

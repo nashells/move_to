@@ -1,0 +1,21 @@
+# Visual Studio / dotnet build outputs
+src/**/bin/
+src/**/obj/
+tests/**/bin/
+tests/**/obj/
+
+# VS / IDE metadata
+.vs/
+*.user
+*.suo
+*.userosscache
+*.userprefs
+*.cache
+
+# Test and coverage artifacts
+TestResults/
+coverage/
+
+# NuGet packages
+*.nupkg
+packages/

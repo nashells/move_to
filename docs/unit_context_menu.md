@@ -49,7 +49,9 @@ Windows 11エクスプローラーの右クリックメニューに「move to」
 ### シェル拡張登録
 - Windows 11のコンテキストメニュー拡張として登録（COM 登録: regasm を想定）
 - ファイル選択時、フォルダー選択時、複数選択時に表示
-- ProgID/GUID は固定し、インストーラ/スクリプトで登録・解除する（アドミン権限前提）
+- ProgID: `Nashells.MoveTo.ContextMenu`
+- GUID: `{D8E8C7DA-5C4E-4B61-9A1F-4C8E9C9B7F2B}`（コードとスクリプトで固定）
+- 配置パス: `C:\\Program Files\\nashells\\MoveTo\\` にシェル DLL を配置し、regasm /codebase を用いて登録/解除（アドミン権限）
 - Explorer 再起動が必要な場合はインストーラ手順に含める
 
 ### 配布・登録との境界

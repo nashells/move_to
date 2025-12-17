@@ -6,11 +6,13 @@ Windows11のexplorer上でファイルを右クリックし、メニューから
 ## 配布・登録要件（デプロイ観点）
 - 対象OS: Windows 11（新しいコンテキストメニューが前提）。旧式メニューとの両対応は不要。
 - シェル登録: COM ベースのシェル拡張として登録する。
-	- ProgID/GUID を固定し、regasm（.NET 8/10 対応）で登録・解除できること。
+	- ProgID: `Nashells.MoveTo.ContextMenu`
+	- GUID: `{D8E8C7DA-5C4E-4B61-9A1F-4C8E9C9B7F2B}`
+	- regasm（.NET 8/10 対応）で登録・解除できること。
 	- アドミン権限での登録/解除手段を用意すること（インストーラ／スクリプト）。
 - 配布: インストーラまたは登録スクリプトで、
 	- regasm による登録・アンレジスト
-	- 必要な依存ファイル（DLL）の配置
+	- 必要な依存ファイル（DLL）の配置（`C:\\Program Files\\nashells\\MoveTo\\`）
 	- Explorer 再起動手順の案内
 	を提供する。
 - アンインストール: 登録解除（regasm /unregister 相当）を必ず含める。

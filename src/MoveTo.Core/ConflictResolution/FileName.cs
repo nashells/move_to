@@ -57,5 +57,12 @@ public sealed class FileName : IEquatable<FileName>
     }
 
     public override int GetHashCode()
-        => HashCode.Combine(BaseName?.ToLowerInvariant(), Extension?.ToLowerInvariant());
+    {
+        var bn = (BaseName ?? string.Empty).ToLowerInvariant();
+        var ext = (Extension ?? string.Empty).ToLowerInvariant();
+        unchecked
+        {
+            return (bn.GetHashCode() * 397) ^ ext.GetHashCode();
+        }
+    }
 }

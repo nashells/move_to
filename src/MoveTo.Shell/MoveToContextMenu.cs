@@ -14,17 +14,33 @@ using SharpShell.SharpContextMenu;
 namespace MoveTo.Shell;
 
 [ComVisible(true)]
-[COMServerAssociation(AssociationType.AllFiles)]
+[COMServerAssociation(AssociationType.AllFiles | AssociationType.Directory)]
 [ProgId("Nashells.MoveTo.ContextMenu")]
 [Guid("D8E8C7DA-5C4E-4B61-9A1F-4C8E9C9B7F2B")]
 public class MoveToContextMenu : SharpContextMenu
 {
     private readonly ConfigurationRepository _configRepo;
+    private readonly string _configPath;
+    private readonly string _logPath;
 
     public MoveToContextMenu()
     {
-        var configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MoveTo", "config.json");
-        _configRepo = new ConfigurationRepository(configPath, log: msg => System.Diagnostics.Debug.WriteLine(msg));
+        _logPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MoveTo", "debug.log");
+        _configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MoveTo", "config.json");
+        _configRepo = new ConfigurationRepository(_configPath, log: msg => WriteLog(msg));
+        WriteLog($"ConfigPath: {_configPath}");
+        WriteLog($"ConfigExists: {File.Exists(_configPath)}");
+    }
+
+    private void WriteLog(string message)
+    {
+        try
+        {
+            var dir = Path.GetDirectoryName(_logPath);
+            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir!);
+            File.AppendAllText(_logPath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {message}{Environment.NewLine}");
+        }
+        catch { }
     }
 
     protected override bool CanShowMenu()
@@ -34,6 +50,7 @@ public class MoveToContextMenu : SharpContextMenu
 
     protected override ContextMenuStrip CreateMenu()
     {
+        WriteLog("CreateMenu called");
         var configProvider = new RepositoryConfigurationProvider(_configRepo);
         var menuBuilder = new DefaultMenuBuilder();
         var conflictPresenter = new ShellConflictPresenter();
@@ -45,6 +62,7 @@ public class MoveToContextMenu : SharpContextMenu
 
         var context = new SelectionContext(GetSelectedItems());
         var menuModel = handler.BuildMenu(context);
+        WriteLog($"MenuItems count: {menuModel.Items.Count}");
 
         var menu = new ContextMenuStrip();
         var root = new ToolStripMenuItem("move to");

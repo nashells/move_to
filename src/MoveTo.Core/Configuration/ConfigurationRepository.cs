@@ -1,4 +1,4 @@
-using System.Text.Json;
+using Newtonsoft.Json;
 
 namespace MoveTo.Core.Configuration;
 
@@ -31,10 +31,7 @@ public sealed class ConfigurationRepository
                 return Empty();
             }
 
-            var root = JsonSerializer.Deserialize<ConfigurationDto>(json, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
+            var root = JsonConvert.DeserializeObject<ConfigurationDto>(json);
 
             if (root?.Destinations == null)
             {

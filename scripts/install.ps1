@@ -1,7 +1,7 @@
 param(
     [string]$InstallDir = "C:\Program Files\nashells\MoveTo",
     [string]$RegasmPath = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\regasm.exe",
-    [string]$SourceDir = $(Join-Path (Split-Path $PSScriptRoot -Parent) "src\MoveTo.Shell\bin\Release\net8.0-windows"),
+    [string]$SourceDir = $(Join-Path (Split-Path $PSScriptRoot -Parent) "src\MoveTo.Shell\bin\Release\net48"),
     [switch]$SkipCopy,
     [switch]$RestartExplorer
 )
@@ -35,28 +35,58 @@ function Register-Server {
     if ($LASTEXITCODE -ne 0) { throw "regasm failed with exit code $LASTEXITCODE" }
 }
 
+function Add-ApprovedEntry {
+    $key = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Approved'
+    $name = '{D8E8C7DA-5C4E-4B61-9A1F-4C8E9C9B7F2B}'
+    $value = 'MoveTo context menu'
+    New-Item -Path $key -Force | Out-Null
+    New-ItemProperty -Path $key -Name $name -Value $value -PropertyType String -Force | Out-Null
+}
+
+function Register-ContextMenuHandler {
+    $guid = '{D8E8C7DA-5C4E-4B61-9A1F-4C8E9C9B7F2B}'
+    
+    # AllFiles (*) への登録
+    & reg add "HKCR\*\shellex\ContextMenuHandlers\MoveTo" /ve /d $guid /f | Out-Null
+    
+    # Directory への登録
+    & reg add "HKCR\Directory\shellex\ContextMenuHandlers\MoveTo" /ve /d $guid /f | Out-Null
+}
+
 function Ensure-Config {
     param([string]$configPath)
     $dir = Split-Path $configPath -Parent
     if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
     if (-not (Test-Path $configPath)) {
-        $template = @{destinations=@(@{displayName="Temp";path="C:\\Temp"})} | ConvertTo-Json -Depth 4
+        $template = @'
+{
+  "destinations": [
+    { "displayName": "Temp", "path": "C:\\Temp" }
+  ]
+}
+'@
         Set-Content -Path $configPath -Value $template -Encoding UTF8
     }
 }
 
 Require-Admin
-if (-not $SkipCopy) { Copy-Binaries -from $SourceDir -to $InstallDir }
+
+# DLLのロックを解除するためにエクスプローラーを先に停止
+if (-not $SkipCopy) {
+    Get-Process explorer -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 1
+    Copy-Binaries -from $SourceDir -to $InstallDir
+}
 
 $dll = Join-Path $InstallDir "MoveTo.Shell.dll"
 Register-Server -dllPath $dll -regasm $RegasmPath
+Add-ApprovedEntry
+Register-ContextMenuHandler
 
 $configPath = Join-Path $env:LOCALAPPDATA "MoveTo\config.json"
 Ensure-Config -configPath $configPath
 
-if ($RestartExplorer) {
-    Get-Process explorer -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-    Start-Process explorer.exe
-}
+# エクスプローラーを再起動（既に停止している場合も含め）
+Start-Process explorer.exe
 
 Write-Host "Install completed."

@@ -12,16 +12,16 @@
 Set-Location <repo_root>
 dotnet build src\MoveTo.Shell\MoveTo.Shell.csproj -c Release
 ```
-- 成果物は `src\MoveTo.Shell\bin\Release\net8.0-windows\` に配置される（MoveTo.Shell.dll, MoveTo.Core.dll, SharpShell 依存 DLL）。
+- 成果物はシェル拡張用に `src\MoveTo.Shell\bin\Release\net48\` を使用（MoveTo.Shell.dll, MoveTo.Core.dll, SharpShell 依存 DLL）。テスト・ライブラリ向けには net8.0 もビルドされる。
 
 ## 2. インストール（管理者 PowerShell）
 ```powershell
 Set-Location <repo_root>
-powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -RestartExplorer
+powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1
 ```
-- 既定動作: Release 出力から DLL をコピー→ `C:\Program Files\nashells\MoveTo\` へ配置→ regasm /codebase で登録→ config が無ければテンプレ生成→ Explorer を再起動。
+- 既定動作: Explorer を停止→ Release 出力から DLL をコピー→ `C:\Program Files\nashells\MoveTo\` へ配置→ regasm /codebase で COM 登録→ ContextMenuHandler をレジストリ登録→ config が無ければテンプレ生成→ Explorer を再起動。
 - オプション
-  - `-SkipCopy` ビルド済み配置をそのまま使う
+  - `-SkipCopy` ビルド済み配置をそのまま使う（Explorer 停止もスキップ）
   - `-InstallDir <path>` 配置先変更
   - `-RegasmPath <path>` regasm のパス指定
   - `-SourceDir <path>` コピー元変更
@@ -31,7 +31,10 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -RestartExplorer
 Set-Location <repo_root>
 powershell -ExecutionPolicy Bypass -File .\scripts\uninstall.ps1 -RestartExplorer
 ```
-- 解除のみ実施。`-RemoveFiles` を付けると配置フォルダーも削除。
+- 解除動作: regasm /unregister で COM 登録解除→ ContextMenuHandler のレジストリ削除→ Approved リストから削除。
+- オプション
+  - `-RemoveFiles` 配置フォルダーも削除
+  - `-RestartExplorer` Explorer を再起動
 
 ## 4. 設定ファイルの記載方法
 - パス: `%LOCALAPPDATA%\MoveTo\config.json`

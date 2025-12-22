@@ -14,6 +14,19 @@ dotnet build src\MoveTo.Shell\MoveTo.Shell.csproj -c Release
 ```
 - 成果物はシェル拡張用に `src\MoveTo.Shell\bin\Release\net48\` を使用（MoveTo.Shell.dll, MoveTo.Core.dll, SharpShell 依存 DLL）。テスト・ライブラリ向けには net8.0 もビルドされる。
 
+## 1.5. リリースパッケージ作成
+```powershell
+Set-Location <repo_root>
+powershell -ExecutionPolicy Bypass -File .\scripts\build-release.ps1 -Clean
+```
+- 成果物: `Release/` フォルダに配布用パッケージが作成される
+- 含まれるもの:
+  - `bin/` - ビルド済み DLL
+  - `install.ps1` - インストールスクリプト
+  - `uninstall.ps1` - アンインストールスクリプト
+  - `README.md` - エンドユーザー向け説明書
+- このフォルダを ZIP 圧縮して配布可能
+
 ## 2. インストール（管理者 PowerShell）
 ```powershell
 Set-Location <repo_root>
